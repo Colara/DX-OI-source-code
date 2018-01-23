@@ -1,3 +1,4 @@
+//+++<CP> MTK HSMCode copy function add Device: AXD10699 by Cola. 20180123+++
 //+++<FT> Summary add Sockets No. for Socket Contact Counter. by Cola. 20171229+++
 //+++<FT> Revise Summary LOT START TIME to STDF naming timeStr by Cola. 20171226+++ 
 //+++<CP> For D10 unison: barcode_stationStr will randomly be clear issue. 20171205+++
@@ -74,9 +75,9 @@ public class csicDXAuto_Sigurd_CUS extends JFrame
 implements ActionListener, MouseMotionListener, KeyListener, WindowListener,
 Runnable, AdjustmentListener, ItemListener, DocumentListener {
 
-	private static String oiversion = "1.1.38";
-	private static String oidate = "2017-12-29";
-	private static String TryRunTester[] = {};	//20170605. Add Tester Name for TryRun
+	private static String oiversion = "1.1.40";
+	private static String oidate = "2018-01-23";
+	private static String TryRunTester[] = {"DX-24"};	//20170605. Add Tester Name for TryRun
 	private static boolean SigurdFlag = true;
 	
 	//
@@ -1067,6 +1068,16 @@ Runnable, AdjustmentListener, ItemListener, DocumentListener {
 			if(testTypeStr.equalsIgnoreCase("Final")){	//20171121
 				barcode_OI_content += "SG_Summary_Naming=" + summaryfileStr_MES.substring(0, summaryfileStr_MES.length()-4) + "\n";
 				barcode_OI_content += "SG_Summary_LOT_START_TIME=" + Summary_LOT_START_TIME + "\n";	//20171226
+				
+				barcode_OI_content += "SG_KIT_Number=" + kit_No_panel.getText() + "\n";	//20171229-----Start
+				for(int x=0; x < barcode_duts_int;x++){	
+					if (!SocketCount[x].equals("")){		            		
+//						tmpStr += "ProductionSetUserValue " + "site" + x + ": " + SocketCount[x] + "\n";									
+						checkSocketData += "site" + x + " = " + SocketCount[x] + "\n";
+						barcode_OI_content += "site" + x + "=" + SocketCount[x] + "\n";
+					}
+				}	//20171229-----End
+				
 			}
 			barcode_OI_file = new File("/tmp/barcode_file/userFlag.txt");
 
@@ -3570,6 +3581,7 @@ Runnable, AdjustmentListener, ItemListener, DocumentListener {
 				JOB_REV_Str_Rcp = paramStr[1];
 			}else if (paramStr[0].equalsIgnoreCase("SBC_Rule")) {//20170912
 				SBC_Rule_RCP = paramStr[1];
+				if(TryRunOI && !RTStr.equalsIgnoreCase("RT"))
 				SBC_Enable_RCP = true;
 			}else if (paramStr[0].equals("WaferID_Detector")) { //20170912
 				if(paramStr[1].equalsIgnoreCase("FALSE"))
@@ -3820,6 +3832,8 @@ Runnable, AdjustmentListener, ItemListener, DocumentListener {
 			tmpStr += "       Test_Type = " + testTypeStr      + "\n";
 			tmpStr += "      STDFlogStr = " + STDFlogStr       + "\n";
 			tmpStr += "   TesterSiteMap = " + TesterSiteMapStr + "\n";            //20110614
+			if(!SBC_Rule_RCP.equals(""))
+			tmpStr += "        SBC_Rule = " + SBC_Rule_RCP + "\n";
 			tmpStr += "==================================================================== \n";
 			System.out.println(tmpStr);
 
@@ -3847,6 +3861,8 @@ Runnable, AdjustmentListener, ItemListener, DocumentListener {
 			tmpStr += "            STDFlogStr   = " + STDFlogStr       + "\n";
 			tmpStr += "           TesterSiteMap = " + TesterSiteMapStr + "\n";            //20110614
 			tmpStr += "          dateCode    = " + dateCodeStr + "\n";            				//20130131            
+			if(!SBC_Rule_RCP.equals(""))
+				tmpStr += "          SBC_Rule    = " + SBC_Rule_RCP + "\n";  
 			tmpStr += "================================================ \n";
 			textArea1_2.setText(tmpStr);
 
@@ -8619,13 +8635,7 @@ Runnable, AdjustmentListener, ItemListener, DocumentListener {
 //				tmpStr += "ProductionSetUserValue " + "\"FT_Handler_SockTime_GPIB\" " + " " + gpibFTSoakTime + "\n";										
 //				tmpStr += "ProductionSetUserValue " + "\"FT_Handler_SiteMap_GPIB \" " + " " + gpibFTSiteMap + "\n";										
 				checkSocketData += "SG_Barcode_LB = " + barcode_LB          + "\n";  
-				//summary output socket count add by Chia-Hui 20130416
-				for(int x=0; x < barcode_duts_int;x++){	//move to here for FT by Cola. 20170418
-					if (!SocketCount[x].equals("")){		            		
-//						tmpStr += "ProductionSetUserValue " + "site" + x + ": " + SocketCount[x] + "\n";									
-						checkSocketData += "site" + x + " = " + SocketCount[x] + "\n";
-					}
-				}
+
 				if(barcode_customerStr.equals("L176") || barcode_customerStr.equals("L400")){	//20140429 L176_cus
 					JOptionPane.showMessageDialog(null, L176_FT_corr_reason);
 //					tmpStr += "ProductionSetUserValue " + "\"FT_L176_corr_reason \" " + "\"" + L176_FT_corr_reason + "\"" + "\n";
@@ -8746,7 +8756,7 @@ Runnable, AdjustmentListener, ItemListener, DocumentListener {
 //	tmpStr = "Save dmd_cmd script to File: \n" + outfStr + "\n";
 //	System.out.println(tmpStr);
 
-	EQUsocketCheckdata(checkSocketData);
+//	EQUsocketCheckdata(checkSocketData); Remark 20171229
 
 	if (!NO_Corr_Reason.equals("")){
 		SaveNoCorrReason("Msg:" + NO_Corr_Reason);
@@ -11210,7 +11220,7 @@ Runnable, AdjustmentListener, ItemListener, DocumentListener {
 			}
 			
 			if(testTypeStr.equalsIgnoreCase("Wafer") && MTK_series)
-				if(/*barcode_devicetypeStr.indexOf("BM10551")!=-1 ||*/ barcode_devicetypeStr.indexOf("AM10690")!=-1 || barcode_devicetypeStr.indexOf("AZA10699")!=-1) //20170920
+				if(barcode_devicetypeStr.indexOf("BM10551")!=-1 || barcode_devicetypeStr.indexOf("AM10690")!=-1 || barcode_devicetypeStr.indexOf("AZA10699")!=-1 || barcode_devicetypeStr.indexOf("AXD10699")!=-1) //20170920
 					//if(!barcode_programStr.equals("AZA10699BW_U511_V05.load")) //Temp by Program
 					if(!MTK_HSMCode_Copy())	//20170808	
 						return;
@@ -11329,14 +11339,6 @@ Runnable, AdjustmentListener, ItemListener, DocumentListener {
 				}
 			}
 			
-			STDF_start_time = getDateTime3();	//Move to Here. 20171121
-			if(testTypeStr.equalsIgnoreCase("Final"))
-				FTsummarySTDFsetup(); //for summary STDF naming. 20170710  //run before generate_userFlag_file(). 20171121
-			generate_userFlag_file();
-			
-//			JOptionPane.showMessageDialog(null, "1.STDfileStr = " + STDfileStr);
-//			JOptionPane.showMessageDialog(null, "2.summaryfileStr = " + summaryfileStr);
-
 			if(testTypeStr.equalsIgnoreCase("Final")){ //barcode kit LB socket add by Chia-Hui 20130416            	
 				barcode_KIT_process();
 				barcode_LB_process();
@@ -11346,6 +11348,15 @@ Runnable, AdjustmentListener, ItemListener, DocumentListener {
 			if(testTypeStr.equalsIgnoreCase("wafer")){ //barcode kit LB socket add by Chia-Hui 20131218
 				barcode_LB_process();
 			}
+
+			STDF_start_time = getDateTime3();	//Move to Here. 20171121
+			if(testTypeStr.equalsIgnoreCase("Final"))
+				FTsummarySTDFsetup(); //for summary STDF naming. 20170710  //run before generate_userFlag_file(). 20171121
+			generate_userFlag_file();
+			EQUsocketCheckdata(checkSocketData);	//move to here. 20171229
+//			JOptionPane.showMessageDialog(null, "1.STDfileStr = " + STDfileStr);
+//			JOptionPane.showMessageDialog(null, "2.summaryfileStr = " + summaryfileStr);
+
 
 			/*     if (genDmdCmdFile()) {    //--hh
                 genExecShellFile();
@@ -11974,7 +11985,6 @@ Runnable, AdjustmentListener, ItemListener, DocumentListener {
 					socket_No_pane7.setEditable(false);
 					socket_No_pane8.setEditable(false);		
 					socket_No_pane8.setEditable(false);	
-					EQUsocketCheckdata("SG_Barcode_PC = " + tx0b.getText() + "\n");	
 					
 //					if(barcode_customerStr.equals("F186"))
 						bt_GPIB.setEnabled(true);	//20170323
